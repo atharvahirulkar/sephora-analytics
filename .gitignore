@@ -1,0 +1,11 @@
+# Virtual environment
+.venv/
+
+# Raw datasets (too large)
+data/raw/
+
+# Python cache
+__pycache__/
+
+# Jupyter temp files
+.ipynb_checkpoints/
