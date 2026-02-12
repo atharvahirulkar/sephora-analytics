@@ -9,3 +9,7 @@ __pycache__/
 
 # Jupyter temp files
 .ipynb_checkpoints/
+
+# Large processed data (do NOT push)
+data/processed/reviews.csv
+data/processed/product_ingredient_skin.csv
