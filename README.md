@@ -270,5 +270,6 @@ docker run -d --name qdrant -p 6333:6333 -v ~/your-project-path/data/qdrant_stor
 ## Course Context
 
 Built as a graduate-level Data Management course project at Universtity of California - San Diego.
+
 Demonstrates: relational database design, data normalization, graph modeling,
 vector search, and ML-powered recommendation systems.
