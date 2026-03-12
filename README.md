@@ -42,8 +42,8 @@ ML Recommendation Engine
 
 ## Key Findings
 
-- **Glycerin** is the most universal skincare ingredient — appears in 1,005 products and ranked #1 by PageRank across the ingredient network
-- **30 ingredient communities** detected by Louvain algorithm — independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
+- **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network
+- **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
 - **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community
 - **Semantic search** retrieves contextually relevant reviews across 100,000 indexed embeddings with cosine similarity scores of 0.70+
 - **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations
@@ -52,7 +52,7 @@ ML Recommendation Engine
 
 ## Dataset
 
-**Source:** [Sephora Products and Skincare Reviews — Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
+**Source:** [Sephora Products and Skincare Reviews - Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
 
 | File | Description | Size |
 |---|---|---|
@@ -107,17 +107,17 @@ reviews
 
 Three-strategy hybrid recommender using all 3 databases:
 
-**Strategy 1 — Ingredient Based (PostgreSQL + Neo4j)**
+**Strategy 1 - Ingredient Based (PostgreSQL + Neo4j)**
 - Fetches product ingredients from PostgreSQL
 - Weights shared ingredients by Neo4j PageRank score
 - Higher PageRank = more influential shared ingredient
 
-**Strategy 2 — Review Based (Qdrant)**
+**Strategy 2 - Review Based (Qdrant)**
 - Embeds product reviews using `all-MiniLM-L6-v2`
 - Averages embeddings into a single product vector
 - Finds semantically similar products via cosine similarity
 
-**Strategy 3 — Hybrid (Final)**
+**Strategy 3 - Hybrid (Final)**
 - Normalizes both scores to [0, 1]
 - Combines with equal weighting (50/50)
 - Optionally filters by skin type
@@ -164,8 +164,6 @@ sephora-analytics/
 │   ├── 04_qdrant.ipynb         # Vector indexing + semantic search
 │   ├── 05_recommender.ipynb    # Hybrid ML recommender
 │   └── 06_summary.ipynb        # Final findings across all databases
-├── src/
-│   └── transform.py            # ETL transformation scripts
 ├── .env.example                # Environment variable template
 ├── .gitignore
 └── README.md
@@ -225,7 +223,7 @@ neo4j start
 # Qdrant (Docker)
 docker start qdrant
 
-# First time only — pulls and starts Qdrant container
+# First time only - pulls and starts Qdrant container
 docker run -d --name qdrant -p 6333:6333 -v ~/your-project-path/data/qdrant_storage:/qdrant/storage qdrant/qdrant
 ```
 
