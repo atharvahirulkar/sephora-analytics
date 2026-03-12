@@ -1,6 +1,9 @@
 # Virtual environment
 .venv/
 
+# Environment variables (do NOT push) !!
+.env
+
 # Raw datasets (too large)
 data/raw/
 
