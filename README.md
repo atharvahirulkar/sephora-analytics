@@ -54,7 +54,7 @@ Streamlit Web Application
 
 ## Dataset
 
-**Source:** [Sephora Products and Skincare Reviews — Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
+**Source:** [Sephora Products and Skincare Reviews - Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
 
 | File | Description | Size |
 |---|---|---|
