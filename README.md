@@ -6,7 +6,7 @@ A production-grade data engineering project that analyzes relationships between 
 
 ## Architecture
 ```
-Raw CSV Data (Kaggle — 1M+ reviews, 8k+ products)
+Raw CSV Data (Kaggle - 1M+ reviews, 8k+ products)
         ↓
 Python ETL Pipeline (Pandas)
         ↓
@@ -44,8 +44,8 @@ Streamlit Web Application
 
 ## Key Findings
 
-- **Glycerin** is the most universal skincare ingredient — appears in 1,005 products and ranked #1 by PageRank across the ingredient network
-- **30 ingredient communities** detected by Louvain algorithm — independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
+- **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network
+- **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
 - **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community
 - **Semantic search** retrieves contextually relevant reviews across 100,000 indexed embeddings with cosine similarity scores of 0.70+
 - **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations
@@ -108,17 +108,17 @@ reviews
 
 Three-strategy hybrid recommender using all 3 databases:
 
-**Strategy 1 — Ingredient Based (PostgreSQL + Neo4j)**
+**Strategy 1 - Ingredient Based (PostgreSQL + Neo4j)**
 - Fetches product ingredients from PostgreSQL
 - Weights shared ingredients by Neo4j PageRank score
 - Higher PageRank = more influential shared ingredient
 
-**Strategy 2 — Review Based (Qdrant)**
+**Strategy 2 - Review Based (Qdrant)**
 - Embeds product reviews using `all-MiniLM-L6-v2`
 - Averages embeddings into a single product vector
 - Finds semantically similar products via cosine similarity
 
-**Strategy 3 — Hybrid (Final)**
+**Strategy 3 - Hybrid (Final)**
 - Normalizes both scores to [0, 1]
 - Combines with equal weighting (50/50)
 - Optionally filters by skin type
@@ -148,10 +148,10 @@ hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 A live semantic search and recommendation interface powered by all 3 databases.
 
 **Features:**
-- Free text search — type any concern, ingredient, or product type
-- Skin type filter — dry, oily, combination, normal
+- Free text search - type any concern, ingredient, or product type
+- Skin type filter - dry, oily, combination, normal
 - Relevance score, average rating, price, and top ingredients per result
-- Find Similar button — runs full hybrid pipeline on any result
+- Find Similar button - runs full hybrid pipeline on any result
 
 **Run the app:**
 ```bash
@@ -243,12 +243,12 @@ brew services start postgresql
 # Neo4j
 neo4j start
 
-# Qdrant — first time setup
+# Qdrant - first time setup
 docker run -d --name qdrant -p 6333:6333 \
   -v ~/your-project-path/data/qdrant_storage:/qdrant/storage \
   qdrant/qdrant
 
-# Qdrant — subsequent runs
+# Qdrant - subsequent runs
 docker start qdrant
 ```
 
