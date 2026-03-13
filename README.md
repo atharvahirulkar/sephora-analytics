@@ -1,4 +1,4 @@
-# Sephora Skincare Analytics — Multi-Database Data Engineering Pipeline
+# Sephora Skincare Analytics - Multi-Database Data Engineering Pipeline
 
 A production-grade data engineering project that analyzes relationships between cosmetic ingredients, products, and user skin types using a **multi-database architecture** combining PostgreSQL, Neo4j, and Qdrant.
 
