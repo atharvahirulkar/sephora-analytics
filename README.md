@@ -1,13 +1,12 @@
-# Sephora Skincare Analytics - Multi-Database Data Engineering Pipeline
+# Sephora Skincare Analytics — Multi-Database Data Engineering Pipeline
 
 A production-grade data engineering project that analyzes relationships between cosmetic ingredients, products, and user skin types using a **multi-database architecture** combining PostgreSQL, Neo4j, and Qdrant.
 
 ---
 
 ## Architecture
-
 ```
-Raw CSV Data (Kaggle - 1M+ reviews, 8k+ products)
+Raw CSV Data (Kaggle — 1M+ reviews, 8k+ products)
         ↓
 Python ETL Pipeline (Pandas)
         ↓
@@ -25,6 +24,9 @@ Python ETL Pipeline (Pandas)
         ↓
 ML Recommendation Engine
 (Hybrid: Graph signals + Semantic signals)
+        ↓
+Streamlit Web Application
+(Live semantic search + hybrid recommendations)
 ```
 
 ---
@@ -42,8 +44,8 @@ ML Recommendation Engine
 
 ## Key Findings
 
-- **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network
-- **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
+- **Glycerin** is the most universal skincare ingredient — appears in 1,005 products and ranked #1 by PageRank across the ingredient network
+- **30 ingredient communities** detected by Louvain algorithm — independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
 - **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community
 - **Semantic search** retrieves contextually relevant reviews across 100,000 indexed embeddings with cosine similarity scores of 0.70+
 - **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations
@@ -52,7 +54,7 @@ ML Recommendation Engine
 
 ## Dataset
 
-**Source:** [Sephora Products and Skincare Reviews - Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
+**Source:** [Sephora Products and Skincare Reviews — Kaggle](https://www.kaggle.com/datasets/nadyinky/sephora-products-and-skincare-reviews)
 
 | File | Description | Size |
 |---|---|---|
@@ -67,12 +69,11 @@ ML Recommendation Engine
 |---|---|
 | PostgreSQL | 411 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
 | Neo4j | 6,347 ingredient nodes, 1,288 product nodes, 568,225 co-occurrence edges, PageRank + community scores |
-| Qdrant | 100,000 review embeddings, 384 dimensions, persistent disk storage |
+| Qdrant | 100,000 review embeddings, 384 dimensions, running via Docker server |
 
 ---
 
 ## Normalized Schema (3NF)
-
 ```
 products
 ├── product_id (PK)
@@ -107,21 +108,20 @@ reviews
 
 Three-strategy hybrid recommender using all 3 databases:
 
-**Strategy 1 - Ingredient Based (PostgreSQL + Neo4j)**
+**Strategy 1 — Ingredient Based (PostgreSQL + Neo4j)**
 - Fetches product ingredients from PostgreSQL
 - Weights shared ingredients by Neo4j PageRank score
 - Higher PageRank = more influential shared ingredient
 
-**Strategy 2 - Review Based (Qdrant)**
+**Strategy 2 — Review Based (Qdrant)**
 - Embeds product reviews using `all-MiniLM-L6-v2`
 - Averages embeddings into a single product vector
 - Finds semantically similar products via cosine similarity
 
-**Strategy 3 - Hybrid (Final)**
+**Strategy 3 — Hybrid (Final)**
 - Normalizes both scores to [0, 1]
 - Combines with equal weighting (50/50)
 - Optionally filters by skin type
-
 ```python
 hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 ```
@@ -143,10 +143,31 @@ hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 
 ---
 
-## Project Structure
+## Streamlit Application
 
+A live semantic search and recommendation interface powered by all 3 databases.
+
+**Features:**
+- Free text search — type any concern, ingredient, or product type
+- Skin type filter — dry, oily, combination, normal
+- Relevance score, average rating, price, and top ingredients per result
+- Find Similar button — runs full hybrid pipeline on any result
+
+**Run the app:**
+```bash
+streamlit run app.py
+```
+
+Then open `http://localhost:8501` in your browser.
+
+---
+
+## Project Structure
 ```
 sephora-analytics/
+├── app.py                      # Streamlit web application
+├── src/
+│   └── recommender.py          # Reusable recommendation engine
 ├── data/
 │   ├── raw/                    # Original Kaggle CSVs (gitignored)
 │   ├── processed/              # Normalized tables
@@ -158,12 +179,14 @@ sephora-analytics/
 │   │   └── neo4j_edges.csv
 │   └── qdrant_storage/         # Persistent Qdrant vectors (gitignored)
 ├── notebooks/
-│   ├── 01_ingest.ipynb         # Data cleaning + PostgreSQL ingestion
+│   ├── 00_etl.ipynb            # Raw data cleaning + normalization
+│   ├── 01_ingest.ipynb         # PostgreSQL ingestion + constraints
 │   ├── 02_sql_analysis.ipynb   # SQL queries + advanced analysis
 │   ├── 03_neo4j.ipynb          # Graph loading + PageRank + communities
 │   ├── 04_qdrant.ipynb         # Vector indexing + semantic search
 │   ├── 05_recommender.ipynb    # Hybrid ML recommender
-│   └── 06_summary.ipynb        # Final findings across all databases
+│   └── 06_summary.ipynb        # Final findings + visualizations
+├── reports/                    # Generated plot images
 ├── .env.example                # Environment variable template
 ├── .gitignore
 └── README.md
@@ -177,7 +200,7 @@ sephora-analytics/
 - Python 3.9+
 - PostgreSQL 18+
 - Neo4j 2025+
-- Git
+- Docker Desktop
 
 ### 1. Clone the repository
 ```bash
@@ -195,7 +218,7 @@ source venv/bin/activate
 ```bash
 pip install pandas sqlalchemy psycopg2-binary neo4j qdrant-client \
             sentence-transformers networkx python-louvain \
-            matplotlib seaborn scikit-learn python-dotenv
+            matplotlib seaborn scikit-learn python-dotenv streamlit
 ```
 
 ### 4. Configure environment variables
@@ -212,29 +235,37 @@ NEO4J_PASSWORD=your_password
 PG_CONNECTION=postgresql://your_user@localhost:5432/sephora_db
 ```
 
-### 5. Start databases
+### 5. Start all services
 ```bash
-# PostgreSQL (via Homebrew)
+# PostgreSQL
 brew services start postgresql
 
 # Neo4j
 neo4j start
 
-# Qdrant (Docker)
-docker start qdrant
+# Qdrant — first time setup
+docker run -d --name qdrant -p 6333:6333 \
+  -v ~/your-project-path/data/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant
 
-# First time only - pulls and starts Qdrant container
-docker run -d --name qdrant -p 6333:6333 -v ~/your-project-path/data/qdrant_storage:/qdrant/storage qdrant/qdrant
+# Qdrant — subsequent runs
+docker start qdrant
 ```
 
 ### 6. Run notebooks in order
 ```
-01_ingest.ipynb       → cleans data + loads PostgreSQL
+00_etl.ipynb          → cleans raw data + builds normalized CSVs
+01_ingest.ipynb       → loads PostgreSQL + adds constraints
 02_sql_analysis.ipynb → SQL analysis + visualizations
-03_neo4j.ipynb        → graph analysis + PageRank
+03_neo4j.ipynb        → graph analysis + PageRank + communities
 04_qdrant.ipynb       → vector indexing + semantic search
 05_recommender.ipynb  → hybrid ML recommender
-06_summary.ipynb      → final findings
+06_summary.ipynb      → final findings + report plots
+```
+
+### 7. Launch the app
+```bash
+streamlit run app.py
 ```
 
 ---
@@ -246,7 +277,8 @@ docker run -d --name qdrant -p 6333:6333 -v ~/your-project-path/data/qdrant_stor
 | Python 3.14 | ETL pipeline + analysis |
 | PostgreSQL 18 | Relational database (3NF schema) |
 | Neo4j 2025 | Graph database |
-| Qdrant | Vector database |
+| Qdrant (Docker) | Vector database server |
+| Streamlit | Web application |
 | SQLAlchemy | PostgreSQL ORM |
 | NetworkX | Graph algorithms (PageRank, Louvain) |
 | Sentence Transformers | Review embeddings (all-MiniLM-L6-v2) |
@@ -269,7 +301,6 @@ docker run -d --name qdrant -p 6333:6333 -v ~/your-project-path/data/qdrant_stor
 
 ## Course Context
 
-Built as a graduate-level Data Management course project at Universtity of California - San Diego.
+Built as a graduate-level Data Management course project at University of California, San Diego.
 
-Demonstrates: relational database design, data normalization, graph modeling,
-vector search, and ML-powered recommendation systems.
+Demonstrates: relational database design, data normalization, graph modeling, vector search, ML-powered recommendation systems, and production-grade application deployment.
