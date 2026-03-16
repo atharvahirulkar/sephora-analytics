@@ -68,7 +68,7 @@ Streamlit Web Application
 | Database | Contents |
 |---|---|
 | PostgreSQL | 411 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
-| Neo4j | 6,347 ingredient nodes, 1,288 product nodes, 568,225 co-occurrence edges, PageRank + community scores |
+| Neo4j | 8,156 ingredient nodes, 2,351 product nodes, 162,972 FOUND_IN edges, PageRank + community scores |
 | Qdrant | 100,000 review embeddings, 384 dimensions, running via Docker server |
 
 ---
@@ -132,8 +132,8 @@ hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 ## Graph Analysis
 
 **PageRank** applied to ingredient co-occurrence graph:
-- Nodes: 6,347 unique ingredients
-- Edges: 568,225 co-occurrence relationships
+- Nodes: 8,156 unique ingredients
+- Edges: 162,972 co-occurrence relationships
 - Two ingredients connected if they appear in the same product
 
 **Louvain Community Detection:**
