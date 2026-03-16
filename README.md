@@ -67,7 +67,7 @@ Streamlit Web Application
 
 | Database | Contents |
 |---|---|
-| PostgreSQL | 411 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
+| PostgreSQL | 8,494 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
 | Neo4j | 8,156 ingredient nodes, 2,351 product nodes, 162,972 FOUND_IN edges, PageRank + community scores |
 | Qdrant | 100,000 review embeddings, 384 dimensions, running via Docker server |
 
