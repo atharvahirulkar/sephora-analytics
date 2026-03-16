@@ -58,8 +58,8 @@ Streamlit Web Application
 
 | File | Description | Size |
 |---|---|---|
-| `product_info.csv` | 8,000+ products with ingredients, price, category | ~50MB |
-| `sephora_full.csv` | 1,094,411 reviews with skin type, rating, text | ~377MB |
+| `product_info.csv` | 8K+ products with ingredients, price, category | ~50MB |
+| `sephora_full.csv` | ~1M reviews with skin type, rating, text | ~377MB |
 
 ---
 
