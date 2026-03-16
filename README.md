@@ -47,7 +47,7 @@ Streamlit Web Application
 - **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network
 - **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
 - **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community
-- **Semantic search** retrieves contextually relevant reviews across 100,000 indexed embeddings with cosine similarity scores of 0.70+
+- **Semantic search** retrieves contextually relevant reviews across 100,000 indexed embeddings (sampled from 1M+ total for computational feasibility) with cosine similarity scores of 0.70+
 - **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations
 
 ---
@@ -69,7 +69,7 @@ Streamlit Web Application
 |---|---|
 | PostgreSQL | 8,494 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
 | Neo4j | 8,156 ingredient nodes, 2,351 product nodes, 162,972 FOUND_IN edges, PageRank + community scores |
-| Qdrant | 100,000 review embeddings, 384 dimensions, running via Docker server |
+| Qdrant | 100,000 review embeddings (sampled from 1,094,411 total), 384 dimensions, running via Docker server |
 
 ---
 
