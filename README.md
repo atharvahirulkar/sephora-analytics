@@ -122,6 +122,7 @@ Three-strategy hybrid recommender using all 3 databases:
 - Normalizes both scores to [0, 1]
 - Combines with equal weighting (50/50)
 - Optionally filters by skin type
+
 ```python
 hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 ```
@@ -149,9 +150,11 @@ A live semantic search and recommendation interface powered by all 3 databases.
 
 **Features:**
 - Free text search - type any concern, ingredient, or product type
-- Skin type filter - dry, oily, combination, normal
+- Skin type filter - dry, oily, combination, normal, sensitive
 - Relevance score, average rating, price, and top ingredients per result
-- Find Similar button - runs full hybrid pipeline on any result
+- **Read Reviews** - fetches semantically matched reviews from Qdrant, enriched with full text from PostgreSQL
+- **Find Similar** - runs full hybrid Neo4j + Qdrant pipeline on any result
+- Allergy filter - flag or hide products containing specified ingredients
 
 **Run the app:**
 ```bash
@@ -176,7 +179,7 @@ sephora-analytics/
 │   │   ├── product_ingredients.csv
 │   │   ├── product_skin_types.csv
 │   │   ├── reviews.csv
-│   │   └── neo4j_edges.csv
+│   │   └── neo4j_edges.csv     # Full ingredient-product export (no LIMIT)
 │   └── qdrant_storage/         # Persistent Qdrant vectors (gitignored)
 ├── notebooks/
 │   ├── 00_etl.ipynb            # Raw data cleaning + normalization
@@ -197,9 +200,9 @@ sephora-analytics/
 ## Setup & Installation
 
 ### Prerequisites
-- Python 3.9+
-- PostgreSQL 18+
-- Neo4j 2025+
+- Python 3.10+
+- PostgreSQL 14+
+- Neo4j 5.x
 - Docker Desktop
 
 ### 1. Clone the repository
@@ -211,14 +214,16 @@ cd sephora-analytics
 ### 2. Create virtual environment
 ```bash
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate        # macOS / Linux
+venv\Scripts\activate           # Windows
 ```
 
 ### 3. Install dependencies
 ```bash
 pip install pandas sqlalchemy psycopg2-binary neo4j qdrant-client \
             sentence-transformers networkx python-louvain \
-            matplotlib seaborn scikit-learn python-dotenv streamlit
+            matplotlib seaborn plotly scikit-learn \
+            python-dotenv streamlit
 ```
 
 ### 4. Configure environment variables
@@ -238,7 +243,8 @@ PG_CONNECTION=postgresql://your_user@localhost:5432/sephora_db
 ### 5. Start all services
 ```bash
 # PostgreSQL
-brew services start postgresql
+brew services start postgresql        # macOS
+sudo service postgresql start         # Linux
 
 # Neo4j
 neo4j start
@@ -274,16 +280,16 @@ streamlit run app.py
 
 | Technology | Role |
 |---|---|
-| Python 3.14 | ETL pipeline + analysis |
-| PostgreSQL 18 | Relational database (3NF schema) |
-| Neo4j 2025 | Graph database |
+| Python 3.10+ | ETL pipeline + analysis |
+| PostgreSQL 14+ | Relational database (3NF schema) |
+| Neo4j 5.x | Graph database |
 | Qdrant (Docker) | Vector database server |
 | Streamlit | Web application |
 | SQLAlchemy | PostgreSQL ORM |
 | NetworkX | Graph algorithms (PageRank, Louvain) |
 | Sentence Transformers | Review embeddings (all-MiniLM-L6-v2) |
 | Pandas | Data manipulation |
-| Matplotlib + Seaborn | Visualization |
+| Matplotlib + Seaborn + Plotly | Visualization |
 | python-dotenv | Credential management |
 
 ---
