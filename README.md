@@ -44,12 +44,11 @@ Streamlit Web Application
 
 ## Key Findings
 
-- **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network
-- **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge
-- **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community
-- **Semantic search** retrieves contextually relevant reviews across 100,000 
-stratified embeddings (balanced across rating levels 1–5) with cosine similarity scores of 0.70+
-- **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations
+- **Glycerin** is the most universal skincare ingredient - appears in 1,005 products and ranked #1 by PageRank across the ingredient network.
+- **30 ingredient communities** detected by Louvain algorithm - independently discovered functional groups (fragrance cluster, hydration cluster, emollient cluster) without any chemical knowledge.
+- **Phenoxyethanol** is the most common preservative (645 products), always co-occurring with citric acid in the same community.
+- **Semantic search** retrieves contextually relevant reviews across 100,000 stratified embeddings (balanced across rating levels 1–5) with cosine similarity scores of 0.70+.
+- **Hybrid recommender** combines graph-weighted ingredient similarity with semantic review matching to produce explainable product recommendations.
 
 ---
 
