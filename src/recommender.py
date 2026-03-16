@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from neo4j import GraphDatabase
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
@@ -23,41 +23,60 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 # --- Core Functions ---
 
 def get_product_info(product_id):
-    return pd.read_sql(f"""
-        SELECT product_id, product_name, brand_name, price_usd, primary_category
-        FROM products
-        WHERE product_id = '{product_id}';
-    """, engine)
+    with engine.connect() as conn:
+        return pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd, primary_category
+                FROM products
+                WHERE product_id = :pid
+            """),
+            conn,
+            params={"pid": product_id}
+        )
 
 
 def search_products(query_text):
     """Search products by text using PostgreSQL full text."""
-    return pd.read_sql(f"""
-        SELECT product_id, product_name, brand_name, price_usd, primary_category
-        FROM products
-        WHERE LOWER(product_name) LIKE LOWER('%{query_text}%')
-           OR LOWER(brand_name)   LIKE LOWER('%{query_text}%')
-        LIMIT 20;
-    """, engine)
+    pattern = f"%{query_text}%"
+    with engine.connect() as conn:
+        return pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd, primary_category
+                FROM products
+                WHERE LOWER(product_name) LIKE LOWER(:pattern)
+                   OR LOWER(brand_name)   LIKE LOWER(:pattern)
+                LIMIT 20
+            """),
+            conn,
+            params={"pattern": pattern}
+        )
 
 
 def get_all_products():
-    return pd.read_sql("""
-        SELECT product_id, product_name, brand_name, price_usd, primary_category
-        FROM products
-        ORDER BY product_name
-        LIMIT 500;
-    """, engine)
+    with engine.connect() as conn:
+        return pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd, primary_category
+                FROM products
+                ORDER BY product_name
+            """),
+            conn
+        )
 
 
 def ingredient_based_recommend(product_id, top_k=20):
     """PostgreSQL + Neo4j ingredient similarity."""
-    ingredients = pd.read_sql(f"""
-        SELECT i.ingredient_name
-        FROM ingredients i
-        JOIN product_ingredients pi ON i.ingredient_id = pi.ingredient_id
-        WHERE pi.product_id = '{product_id}';
-    """, engine)
+    with engine.connect() as conn:
+        ingredients = pd.read_sql(
+            text("""
+                SELECT i.ingredient_name
+                FROM ingredients i
+                JOIN product_ingredients pi ON i.ingredient_id = pi.ingredient_id
+                WHERE pi.product_id = :pid
+            """),
+            conn,
+            params={"pid": product_id}
+        )
 
     if ingredients.empty:
         return None
@@ -71,32 +90,42 @@ def ingredient_based_recommend(product_id, top_k=20):
             WITH p, SUM(COALESCE(i.pagerank, 0.001)) AS pagerank_score
             RETURN p.id AS product_id, pagerank_score
             ORDER BY pagerank_score DESC
-            LIMIT $top_k
-        """, ingredients=ing_list, top_k=top_k)
+            LIMIT 50
+        """, ingredients=ing_list)
         recs = pd.DataFrame([dict(r) for r in result])
 
     if recs.empty:
         return None
 
-    recs = recs[recs["product_id"] != product_id]
+    recs = recs[recs["product_id"] != product_id].head(top_k)
 
-    product_details = pd.read_sql(f"""
-        SELECT product_id, product_name, brand_name, price_usd
-        FROM products
-        WHERE product_id IN ({','.join([f"'{p}'" for p in recs['product_id'].tolist()])});
-    """, engine)
+    with engine.connect() as conn:
+        product_details = pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd
+                FROM products
+                WHERE product_id = ANY(:pids)
+            """),
+            conn,
+            params={"pids": recs["product_id"].tolist()}
+        )
 
     return recs.merge(product_details, on="product_id", how="left")
 
 
 def review_based_recommend(product_id, skin_type=None, top_k=20):
     """Qdrant semantic similarity on reviews."""
-    reviews = pd.read_sql(f"""
-        SELECT review_text FROM reviews
-        WHERE product_id = '{product_id}'
-        AND review_text IS NOT NULL
-        LIMIT 10;
-    """, engine)
+    with engine.connect() as conn:
+        reviews = pd.read_sql(
+            text("""
+                SELECT review_text FROM reviews
+                WHERE product_id = :pid
+                AND review_text IS NOT NULL
+                LIMIT 10
+            """),
+            conn,
+            params={"pid": product_id}
+        )
 
     if reviews.empty:
         return None
@@ -104,14 +133,18 @@ def review_based_recommend(product_id, skin_type=None, top_k=20):
     combined_text = " ".join(reviews["review_text"].tolist())
     query_vector = model.encode(combined_text).tolist()
 
-    must_not_filter = Filter(
-        must_not=[FieldCondition(key="product_id", match=MatchValue(value=product_id))]
-    )
+    # Build filter — exclude current product, optionally filter by skin type
+    must_not = [FieldCondition(key="product_id", match=MatchValue(value=product_id))]
+    must = []
+    if skin_type and skin_type != "All":
+        must.append(FieldCondition(key="skin_type", match=MatchValue(value=skin_type.lower())))
+
+    qdrant_filter = Filter(must=must, must_not=must_not)
 
     results = qdrant.query_points(
         collection_name="sephora_reviews",
         query=query_vector,
-        query_filter=must_not_filter,
+        query_filter=qdrant_filter,
         limit=top_k
     ).points
 
@@ -122,23 +155,24 @@ def review_based_recommend(product_id, skin_type=None, top_k=20):
             for r in results]
     recs = pd.DataFrame(rows).groupby("product_id")["semantic_score"].mean().reset_index()
 
-    product_details = pd.read_sql(f"""
-        SELECT product_id, product_name, brand_name, price_usd
-        FROM products
-        WHERE product_id IN ({','.join([f"'{p}'" for p in recs['product_id'].tolist()])});
-    """, engine)
+    with engine.connect() as conn:
+        product_details = pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd
+                FROM products
+                WHERE product_id = ANY(:pids)
+            """),
+            conn,
+            params={"pids": recs["product_id"].tolist()}
+        )
 
     return recs.merge(product_details, on="product_id", how="left")
 
 
 def query_based_recommend(query_text, skin_type=None, top_k=10):
-    """
-    Free text query → semantic search → ranked products.
-    New function for the Streamlit app.
-    """
+    """Free text query → semantic search → ranked products."""
     query_vector = model.encode(query_text).tolist()
 
-    # Optional skin type filter
     qdrant_filter = None
     if skin_type and skin_type != "All":
         qdrant_filter = Filter(
@@ -155,7 +189,6 @@ def query_based_recommend(query_text, skin_type=None, top_k=10):
     if not results:
         return None
 
-    # Aggregate scores per product
     rows = [{"product_id": r.payload["product_id"], "semantic_score": r.score}
             for r in results]
     recs = (pd.DataFrame(rows)
@@ -165,12 +198,16 @@ def query_based_recommend(query_text, skin_type=None, top_k=10):
             .sort_values("semantic_score", ascending=False)
             .head(top_k))
 
-    # Fetch product details
-    product_details = pd.read_sql(f"""
-        SELECT product_id, product_name, brand_name, price_usd, primary_category
-        FROM products
-        WHERE product_id IN ({','.join([f"'{p}'" for p in recs['product_id'].tolist()])});
-    """, engine)
+    with engine.connect() as conn:
+        product_details = pd.read_sql(
+            text("""
+                SELECT product_id, product_name, brand_name, price_usd, primary_category
+                FROM products
+                WHERE product_id = ANY(:pids)
+            """),
+            conn,
+            params={"pids": recs["product_id"].tolist()}
+        )
 
     return recs.merge(product_details, on="product_id", how="left")
 
@@ -194,16 +231,23 @@ def hybrid_recommend(product_id, skin_type=None, top_k=5):
                         "price_usd", "ing_score_norm"]].merge(
         rev_recs[["product_id", "sem_score_norm"]],
         on="product_id", how="outer"
-    ).fillna(0)
+    ).fillna({"ing_score_norm": 0, "sem_score_norm": 0})  # only fill score cols, not strings
 
-    # Fix ghost rows
-    missing = hybrid[hybrid["product_name"] == 0]["product_id"].tolist()
-    if missing:
-        missing_details = pd.read_sql(f"""
-            SELECT product_id, product_name, brand_name, price_usd
-            FROM products
-            WHERE product_id IN ({','.join([f"'{p}'" for p in missing])});
-        """, engine)
+    # Fix ghost rows — products that came only from rev_recs have no product details
+    missing_mask = hybrid["product_name"].isna()
+    missing_ids = hybrid.loc[missing_mask, "product_id"].tolist()
+
+    if missing_ids:
+        with engine.connect() as conn:
+            missing_details = pd.read_sql(
+                text("""
+                    SELECT product_id, product_name, brand_name, price_usd
+                    FROM products
+                    WHERE product_id = ANY(:pids)
+                """),
+                conn,
+                params={"pids": missing_ids}
+            )
         for _, row in missing_details.iterrows():
             mask = hybrid["product_id"] == row["product_id"]
             hybrid.loc[mask, "product_name"] = row["product_name"]
@@ -216,10 +260,15 @@ def hybrid_recommend(product_id, skin_type=None, top_k=5):
     )
 
     if skin_type and skin_type != "All":
-        skin_products = pd.read_sql(f"""
-            SELECT DISTINCT product_id FROM product_skin_types
-            WHERE LOWER(skin_type) = LOWER('{skin_type}');
-        """, engine)
+        with engine.connect() as conn:
+            skin_products = pd.read_sql(
+                text("""
+                    SELECT DISTINCT product_id FROM product_skin_types
+                    WHERE LOWER(skin_type) = LOWER(:st)
+                """),
+                conn,
+                params={"st": skin_type}
+            )
         hybrid = hybrid[hybrid["product_id"].isin(skin_products["product_id"].tolist())]
 
     return hybrid.sort_values("hybrid_score", ascending=False).head(top_k)
