@@ -407,7 +407,7 @@ with st.sidebar:
     )
 
     st.markdown('<div class="sidebar-sec">🎛 Filters</div>', unsafe_allow_html=True)
-    skin_type      = st.selectbox("Skin Type", ["All Skin Types","Dry","Oily","Combination","Normal","Sensitive"])
+    skin_type      = st.selectbox("Type", ["All Skin Types","Dry","Oily","Combination","Normal","Sensitive"])
     top_k          = st.slider("Results", 3, 15, 6)
 
     st.markdown('<div class="sidebar-sec">⚠️ Allergy Filter</div>', unsafe_allow_html=True)
@@ -439,11 +439,7 @@ with st.sidebar:
 # ── Page header ───────────────────────────────────────────────────
 st.markdown(
     '<div class="app-eyebrow">🌿 CosmeTik </div>'
-    '<div class="app-title">Find what actually works<br><em>for you !!</em></div>'
-    '<div class="app-subtitle">Powered by '
-    '<span class="db-tag">PostgreSQL</span>'
-    '<span class="db-tag">Neo4j</span>'
-    '<span class="db-tag">Qdrant</span></div>',
+    '<div class="app-title">Find what actually works<br><em>for you !!</em></div>',
     unsafe_allow_html=True
 )
 st.divider()
@@ -466,7 +462,6 @@ CHIPS = [
     ("✨", "vitamin C brightening serum"),
     ("🌙", "retinol anti-aging"),
     ("💧", "niacinamide pore minimizer"),
-    ("☀️", "lightweight SPF moisturizer"),
     ("🛡️", "barrier repair eczema"),
 ]
 st.markdown('<div class="chips-label">✦ Popular searches</div>', unsafe_allow_html=True)
