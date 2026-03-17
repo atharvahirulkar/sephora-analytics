@@ -58,8 +58,8 @@ Streamlit Web Application
 
 | File | Description | Size |
 |---|---|---|
-| `product_info.csv` | 8,000+ products with ingredients, price, category | ~50MB |
-| `sephora_full.csv` | 1,094,411 reviews with skin type, rating, text | ~377MB |
+| `product_info.csv` | 8K+ products with ingredients, price, category | ~50MB |
+| `sephora_full.csv` | ~1M reviews with skin type, rating, text | ~377MB |
 
 ---
 
@@ -67,10 +67,9 @@ Streamlit Web Application
 
 | Database | Contents |
 |---|---|
-| PostgreSQL | 8,494 products, 8,156 ingredients, 81,486 product-ingredient relationships, 1,094,411 reviews |
-| Neo4j | 8,156 ingredient nodes, 2,351 product nodes, 162,972 FOUND_IN edges, PageRank + community scores |
-| Qdrant | 100,000 review embeddings (stratified — 20,000 per rating level, 1–5), 
-384 dimensions, running via Docker server |
+| PostgreSQL | 8494 products, 8156 ingredients, 81486 product-ingredient relationships, 1094411 reviews |
+| Neo4j | 8156 ingredient nodes, 2351 product nodes, 162972 FOUND_IN edges, PageRank + community scores |
+| Qdrant | 100000 review embeddings (stratified - 20000 per rating level, 1–5), 384 dimensions, running via Docker server |
 
 ---
 
@@ -133,8 +132,8 @@ hybrid_score = 0.5 × ingredient_score + 0.5 × semantic_score
 ## Graph Analysis
 
 **PageRank** applied to ingredient co-occurrence graph:
-- Nodes: 8,156 unique ingredients
-- Edges: 162,972 co-occurrence relationships
+- Nodes: 8156 unique ingredients
+- Edges: 162972 co-occurrence relationships
 - Two ingredients connected if they appear in the same product
 
 **Louvain Community Detection:**

@@ -26,7 +26,7 @@ def load_embedder():
 embedder = load_embedder()
 
 st.set_page_config(
-    page_title="Need Somethin' ?",
+    page_title="CosmeTik",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -402,9 +402,7 @@ def card_html(row, score_col, rank=None, card_class="result-card"):
 # ── Sidebar ───────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '<div class="sidebar-logo">🌿 Glow Intelligence</div>'
-        '<div class="sidebar-tag">Skincare analytics · '
-        '<strong>PostgreSQL · Neo4j · Qdrant</strong></div>',
+        '<div class="sidebar-logo">🌿 CosmeTik </div>',
         unsafe_allow_html=True
     )
 
@@ -440,8 +438,8 @@ with st.sidebar:
 
 # ── Page header ───────────────────────────────────────────────────
 st.markdown(
-    '<div class="app-eyebrow">🌿 Skincare Intelligence</div>'
-    '<div class="app-title">Your skin deserves<br><em>better answers.</em></div>'
+    '<div class="app-eyebrow">🌿 CosmeTik </div>'
+    '<div class="app-title">Find what actually works<br><em>for you !!</em></div>'
     '<div class="app-subtitle">Powered by '
     '<span class="db-tag">PostgreSQL</span>'
     '<span class="db-tag">Neo4j</span>'
@@ -641,7 +639,6 @@ else:
         '<div class="empty-heading">What is your skin craving today?</div>'
         '<div class="empty-body">'
         'Type a concern, ingredient, or product type above.<br>'
-        'We\'ll search 100,000 real Sephora reviews to find your match.'
         '</div>'
         '</div>',
         unsafe_allow_html=True
