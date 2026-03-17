@@ -1,6 +1,9 @@
 # Virtual environment
 .venv/
 
+# Environment variables (do NOT push) !!
+.env
+
 # Raw datasets (too large)
 data/raw/
 
@@ -9,3 +12,20 @@ __pycache__/
 
 # Jupyter temp files
 .ipynb_checkpoints/
+
+# Large processed data (do NOT push)
+data/processed/reviews.csv
+data/processed/product_ingredient_skin.csv
+
+# Qdrant vector storage (machine-specific, regenerate via 04_qdrant.ipynb)
+data/qdrant_storage/
+
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Notebook outputs (Clean repo)
+*.ipynb_checkpoints/
